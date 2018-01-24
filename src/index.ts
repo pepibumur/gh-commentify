@@ -3,10 +3,6 @@ import * as express from "express"
 const app = express()
 import fetch from "node-fetch"
 
-app.get("/", (req, res) => {
-  res.send("Hello World!")
-})
-
 app.set("port", process.env.PORT || 5000)
 
 // e.g. https://api.github.com/repos/artsy/artsy.github.io/issues/355/comments
