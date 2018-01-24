@@ -4,16 +4,20 @@
   "description": "A re-director to for gh-comments",
   "repository": "https://github.com/orta/gh-commentify.git",
   "author": "Orta Therox",
-  "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js"
+    "build": "tsc -p ./src",
+    "start": "concurrently --kill-others \"tsc -w -p src\" \"nodemon dist/index.js\""
   },
   "dependencies": {
     "express": "^4.15.3",
     "node-fetch": "^1.7.1"
   },
   "devDependencies": {
-    "@types/express": "^4.0.36"
+    "@types/express": "^4.11.0",
+    "@types/node-fetch": "^1.6.7",
+    "concurrently": "^3.5.1",
+    "nodemon": "^1.14.11",
+    "typescript": "^2.6.2"
   }
 }
