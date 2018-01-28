@@ -15,15 +15,17 @@ const githubGet: GitHubGetFunction = (path, request) => {
   return fetch([ghUrl, path].join("/"), request)
 }
 
-export const commentsHandler = (githubGet: GitHubGetFunction) => (req: express.Request, res: express.Response) => {
-  if (req.params.owner !== process.env.ONLY_OWNER) {
-    return res.status(401).json({ message: "Only can get comments with owner: " + process.env.ONLY_OWNER })
+export const commentsHandler = (githubGet: GitHubGetFunction, owner?: string, githubToken?: string) => (req: express.Request, res: express.Response) => {
+  if (req.params.owner !== owner) {
+    res.status(401)
+    res.json({ message: "Only can get comments with owner: " + owner })
+    return
   }
   const path = ["repos", req.params.owner, req.params.repo, "issues", req.params.number, "comments"].join("/")
   const request = {
     method: "GET", headers: {
       Accept: "application/vnd.github.v3.html+json",
-      Authorization: "token " + process.env.GITHUB_ACCESS_TOKEN,
+      Authorization: "token " + githubToken,
     }
   }
   githubGet(path, request).then(response => {
@@ -36,7 +38,9 @@ export const commentsHandler = (githubGet: GitHubGetFunction) => (req: express.R
   })
 }
 
-const appRunner = (port: number, app: express.Express = express(), handler: RequestHandler = commentsHandler(githubGet)) => {
+const owner = process.env.ONLY_OWNER
+const githubToken = process.env.GITHUB_ACCESS_TOKEN
+const appRunner = (port: number, app: express.Express = express(), handler: RequestHandler = commentsHandler(githubGet, owner, githubToken)) => {
   app.set("port", port)
   app.get("/repos/:owner/:repo/issues/:number/comments", handler)
   app.listen(app.get("port"), () => {
