@@ -9,7 +9,7 @@
     "build": "tsc",
     "test": "jest",
     "dev": "concurrently --kill-others \"tsc -w\" \"nodemon dist/index.js\"",
-    "start": "tsc && node dist/index.js"
+    "start": "node_modules/typescript/bin/tsc && node dist/index.js"
   },
   "dependencies": {
     "express": "^4.15.3",
