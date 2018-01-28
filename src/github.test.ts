@@ -37,9 +37,7 @@ describe("commentsHandler", () => {
 
   beforeEach(() => {
     githubGet = jest.fn<GitHubGetFunction>().mockReturnValue(Promise.resolve({
-      json: () => ({
-        value: "key"
-      }),
+      json: () => Promise.resolve([]),
       status: 200
     }))
     const Response = jest.fn<Response>(() => ({
@@ -89,26 +87,13 @@ describe("commentsHandler", () => {
       it("should have been called with the right request", () => {
         expect(githubGet).toHaveBeenCalledWith(expect.anything(), {
           method: "GET", headers: {
-            Accept: "application/vnd.github.v3.html+json",
+            Accept: "application/vnd.github.squirrel-girl-preview+json",
             Authorization: "token token"
           }
         })
       })
     })
 
-    describe("response", () => {
-      it("should return the correct headers", () => {
-        expect(response.header).toHaveBeenCalledWith("Access-Control-Allow-Origin", "*")
-        expect(response.header).toHaveBeenCalledWith("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE")
-        expect(response.header).toHaveBeenCalledWith("Access-Control-Allow-Headers", "Content-Type, Authorization")
-      })
-      it("should return the correct status", () => {
-        expect(response.status).toHaveBeenCalledWith(200)
-      })
-      it("should return the correct json", () => {
-        expect(response.json).toHaveBeenCalledWith({ value: "key" })
-      })
-    })
   })
 
 })

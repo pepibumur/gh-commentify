@@ -21,20 +21,63 @@ export const commentsHandler = (githubGet: GitHubGetFunction, owner?: string, gi
     res.json({ message: "Only can get comments with owner: " + owner })
     return
   }
-  const path = ["repos", req.params.owner, req.params.repo, "issues", req.params.number, "comments"].join("/")
-  const request = {
+  const requestParams = {
     method: "GET", headers: {
-      Accept: "application/vnd.github.v3.html+json",
+      Accept: "application/vnd.github.squirrel-girl-preview+json",
       Authorization: "token " + githubToken,
     }
   }
-  githubGet(path, request).then(response => {
+  interface HTTPResponse<T> {
+    object: T,
+    status: number
+  }
+  interface Comment {
+    id: string
+  }
+  const sendRequest = (path: string): Promise<HTTPResponse<any>> => {
+    return githubGet(path, requestParams).then(response => {
+      return Promise.all([Promise.resolve(response.status), response.json()])
+    }).then(response => {
+      return Promise.resolve({ status: response[0], object: response[1] })
+    })
+  }
+  const comments = (): Promise<HTTPResponse<Comment[]>> => {
+    const issueCommentsPath = ["repos", req.params.owner, req.params.repo, "issues", req.params.number, "comments"].join("/")
+    return sendRequest(issueCommentsPath)
+  }
+  const reactions = (comments: string[]): Promise<object> => {
+    return Promise.all(comments.map((commentId) => {
+      const reactionsPath = ["repos", req.params.owner, req.params.repo, "issues", "comments", commentId, "reactions"].join("/")
+      const reactionsPromise = sendRequest(reactionsPath)
+      return Promise.all([Promise.resolve(commentId), reactionsPromise]).then((arr) => {
+        return Promise.resolve({ commentId: arr[0], reactions: arr[1] })
+      })
+    })).then((commentsReactions) => {
+      var result = commentsReactions.reduce(function (map, obj) {
+        map[obj.commentId] = obj.reactions.object;
+        return map;
+      }, {});
+      return Promise.resolve(result)
+    })
+  }
+
+  comments().then(response => {
+    const reactionsPromise = reactions(response.object.map((comment) => comment.id))
+    return Promise.all([Promise.resolve(response), reactionsPromise])
+  }).then((response) => {
+    const commentsResponse: HTTPResponse<Comment[]> = response[0]
+    const reactionsResponse = response[1]
+    const commentsWithReactions = commentsResponse.object.map((comment) => {
+      return {
+        ...comment,
+        reactions: reactionsResponse[comment.id]
+      }
+    })
     res.header("Access-Control-Allow-Origin", "*")
     res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE")
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-    res.status(response.status)
-    const json = response.json()
-    res.json(json)
+    res.status(commentsResponse.status)
+    res.json(commentsWithReactions)
   })
 }
 
