@@ -86,6 +86,9 @@ const githubToken = process.env.GITHUB_ACCESS_TOKEN
 const appRunner = (port: number, app: express.Express = express(), handler: RequestHandler = commentsHandler(githubGet, owner, githubToken)) => {
   app.set("port", port)
   app.get("/repos/:owner/:repo/issues/:number/comments", handler)
+  app.get("/", (request, res) => {
+    res.send("It's working!")
+  })
   app.listen(app.get("port"), () => {
     console.log(`Started server at http://localhost:${process.env.PORT || 5000}`)
   })
