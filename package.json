@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "start": "concurrently --kill-others \"tsc -w\" \"nodemon dist/index.js\""
+    "dev": "concurrently --kill-others \"tsc -w\" \"nodemon dist/index.js\"",
+    "start": "tsc && node dist/index.js"
   },
   "dependencies": {
     "express": "^4.15.3",
